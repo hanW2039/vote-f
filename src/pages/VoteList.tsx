@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Row, Col, Spin, Empty, Pagination, Input, Card } from 'antd';
-import { SearchOutlined, ThunderboltOutlined, HistoryOutlined } from '@ant-design/icons';
+import { Typography, Row, Col, Spin, Empty, Pagination, Input, Card, Button, Modal, Form, DatePicker, Radio, message } from 'antd';
+import { SearchOutlined, ThunderboltOutlined, HistoryOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { VoteListItem } from '../types';
 import { voteApi } from '../services/api';
 import VoteItem from '../components/VoteItem';
 import { motion } from 'framer-motion';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 // 列表动画变体
 const containerVariants = {
@@ -38,6 +40,10 @@ const VoteList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeOnly, setActiveOnly] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [createForm] = Form.useForm();
+  const [options, setOptions] = useState<string[]>(['', '']);
+  const [submitting, setSubmitting] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -92,6 +98,201 @@ const VoteList: React.FC = () => {
       )
     : votes;
   
+  // 处理创建投票
+  const handleCreateVote = async (values: {
+    title: string;
+    question: string;
+    vote_type: 'single' | 'multiple';
+    end_time: dayjs.Dayjs;
+  }) => {
+    try {
+      setSubmitting(true);
+      
+      // 过滤空选项
+      const filteredOptions = options.filter(option => option.trim() !== '');
+      
+      if (filteredOptions.length < 2) {
+        message.error('至少需要2个有效选项');
+        setSubmitting(false);
+        return;
+      }
+      
+      const voteData = {
+        title: values.title,
+        question: values.question,
+        vote_type: values.vote_type,
+        options: filteredOptions,
+        start_time: dayjs().format('YYYY-MM-DDTHH:mm:ss'),
+        end_time: values.end_time.format('YYYY-MM-DDTHH:mm:ss')
+      };
+      
+      console.log('提交的投票数据:', voteData);
+      
+      await voteApi.createVote(voteData);
+      
+      message.success('投票创建成功');
+      setCreateModalVisible(false);
+      createForm.resetFields();
+      setOptions(['', '']);
+      
+      // 重新加载投票列表
+      loadVotes();
+    } catch (error) {
+      console.error('创建投票失败', error);
+      message.error('创建投票失败，请稍后重试');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  
+  // 添加选项
+  const addOption = () => {
+    setOptions([...options, '']);
+  };
+  
+  // 删除选项
+  const removeOption = (index: number) => {
+    if (options.length <= 2) {
+      message.warning('至少需要保留2个选项');
+      return;
+    }
+    
+    const newOptions = [...options];
+    newOptions.splice(index, 1);
+    setOptions(newOptions);
+  };
+  
+  // 更新选项内容
+  const updateOption = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
+  
+  // 渲染创建投票模态框
+  const renderCreateModal = () => (
+    <Modal
+      title={
+        <div style={{ 
+          fontSize: '24px', 
+          fontWeight: 'bold',
+          background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          创建新投票
+        </div>
+      }
+      open={createModalVisible}
+      onCancel={() => setCreateModalVisible(false)}
+      footer={null}
+      width={700}
+      style={{ top: 20 }}
+      bodyStyle={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', padding: '24px' }}
+    >
+      <Form
+        form={createForm}
+        layout="vertical"
+        onFinish={handleCreateVote}
+        initialValues={{
+          vote_type: 'single' as 'single' | 'multiple',
+          end_time: dayjs().add(7, 'days').endOf('day')
+        }}
+      >
+        <Form.Item
+          name="title"
+          label="投票标题"
+          rules={[{ required: true, message: '请输入投票标题' }]}
+        >
+          <Input placeholder="请输入投票标题" size="large" />
+        </Form.Item>
+        
+        <Form.Item
+          name="question"
+          label="投票问题"
+          rules={[{ required: true, message: '请输入投票问题' }]}
+        >
+          <TextArea placeholder="请输入投票问题" rows={3} />
+        </Form.Item>
+        
+        <Form.Item
+          name="vote_type"
+          label="投票类型"
+          rules={[{ required: true, message: '请选择投票类型' }]}
+        >
+          <Radio.Group>
+            <Radio value="single">单选</Radio>
+            <Radio value="multiple">多选</Radio>
+          </Radio.Group>
+        </Form.Item>
+        
+        <Form.Item
+          label="投票选项"
+          required
+          help="至少需要2个选项"
+        >
+          {options.map((option, index) => (
+            <div key={index} style={{ display: 'flex', marginBottom: '10px' }}>
+              <Input
+                value={option}
+                onChange={(e) => updateOption(index, e.target.value)}
+                placeholder={`选项 ${index + 1}`}
+                style={{ marginRight: '10px' }}
+              />
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => removeOption(index)}
+                disabled={options.length <= 2}
+              />
+            </div>
+          ))}
+          
+          <Button
+            type="dashed"
+            onClick={addOption}
+            style={{ width: '100%', marginTop: '10px' }}
+            icon={<PlusOutlined />}
+          >
+            添加选项
+          </Button>
+        </Form.Item>
+        
+        <Form.Item
+          name="end_time"
+          label="结束时间"
+          rules={[{ required: true, message: '请选择结束时间' }]}
+        >
+          <DatePicker
+            showTime
+            format="YYYY-MM-DD HH:mm:ss"
+            style={{ width: '100%' }}
+            disabledDate={(current) => current && current < dayjs().startOf('day')}
+          />
+        </Form.Item>
+        
+        <Form.Item style={{ textAlign: 'center', marginTop: '24px' }}>
+          <Button onClick={() => setCreateModalVisible(false)} style={{ marginRight: '16px' }}>
+            取消
+          </Button>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={submitting}
+            style={{ 
+              background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
+              border: 'none',
+              fontWeight: 'bold'
+            }}
+          >
+            创建投票
+          </Button>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -109,19 +310,53 @@ const VoteList: React.FC = () => {
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: '36px',
+          position: 'relative'
+        }}
       >
         <Title level={1} style={{ 
           fontSize: '38px', 
-          marginBottom: '36px', 
           textAlign: 'center',
           background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           fontWeight: 'bold',
-          textShadow: '0 2px 8px rgba(254, 44, 85, 0.2)'
+          textShadow: '0 2px 8px rgba(254, 44, 85, 0.2)',
+          margin: 0
         }}>
           投票列表
         </Title>
+        
+        <motion.div
+          style={{
+            position: 'absolute',
+            right: 0
+          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Button
+            type="primary"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateModalVisible(true)}
+            style={{
+              background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
+              border: 'none',
+              fontWeight: 'bold',
+              height: '46px',
+              borderRadius: '12px',
+              paddingLeft: '20px',
+              paddingRight: '20px'
+            }}
+          >
+            创建投票
+          </Button>
+        </motion.div>
       </motion.div>
       
       <motion.div
@@ -349,6 +584,8 @@ const VoteList: React.FC = () => {
           />
         </motion.div>
       )}
+      
+      {renderCreateModal()}
     </motion.div>
   );
 };
