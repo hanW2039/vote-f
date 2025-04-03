@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Typography, Empty, Card } from 'antd';
 import { VoteStats } from '../types';
@@ -6,16 +6,34 @@ import type { EChartsOption } from 'echarts';
 
 const { Title, Text } = Typography;
 
-// 定义图表参数类型
-interface ChartParams {
-  dataIndex: number;
-}
-
 interface VoteResultProps {
   stats: VoteStats | null;
 }
 
 const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
+  // 重新计算每个选项的百分比
+  const optionsWithCalculatedPercentage = useMemo(() => {
+    if (!stats || !stats.options || stats.options.length === 0) {
+      return [];
+    }
+
+    const total = stats.total_votes;
+    
+    // 如果总票数为0，则所有选项的百分比都为0
+    if (total === 0) {
+      return stats.options.map(option => ({
+        ...option,
+        calculatedPercentage: 0
+      }));
+    }
+
+    // 计算每个选项的百分比
+    return stats.options.map(option => ({
+      ...option,
+      calculatedPercentage: (option.count / total) * 100
+    }));
+  }, [stats]);
+
   if (!stats) {
     return <Empty description={<Text style={{ fontSize: '22px' }}>暂无投票数据</Text>} />;
   }
@@ -35,10 +53,13 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
         axisPointer: {
           type: 'shadow'
         },
-        formatter: (params: ChartParams[]) => {
-          const dataIndex = params[0].dataIndex;
-          const option = stats.options[dataIndex];
-          return `${option.text}: ${option.count}票 (${option.percentage.toFixed(2)}%)`;
+        formatter: (params) => {
+          if (Array.isArray(params) && params.length > 0 && typeof params[0].dataIndex === 'number') {
+            const dataIndex = params[0].dataIndex;
+            const option = optionsWithCalculatedPercentage[dataIndex];
+            return `${option.text}: ${option.count}票 (${option.calculatedPercentage.toFixed(2)}%)`;
+          }
+          return '';
         },
         textStyle: {
           fontSize: 18
@@ -53,7 +74,7 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
       },
       xAxis: {
         type: 'category',
-        data: stats.options.map(opt => {
+        data: optionsWithCalculatedPercentage.map(opt => {
           // 移动端显示时名称太长则截断
           const text = opt.text;
           return text.length > 8 ? text.slice(0, 8) + '...' : text;
@@ -81,9 +102,9 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
           name: '票数',
           type: 'bar',
           barWidth: '50%',
-          data: stats.options.map(opt => opt.count),
+          data: optionsWithCalculatedPercentage.map(opt => opt.count),
           itemStyle: {
-            color: function(params: ChartParams) {
+            color: function(params) {
               // 为不同选项设置不同颜色
               const colorList = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4'];
               return colorList[params.dataIndex % colorList.length];
@@ -121,7 +142,7 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
       legend: {
         orient: 'horizontal',
         bottom: 'bottom',
-        data: stats.options.map(opt => opt.text),
+        data: optionsWithCalculatedPercentage.map(opt => opt.text),
         type: 'scroll',
         textStyle: {
           fontSize: 16
@@ -134,7 +155,7 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
           type: 'pie',
           radius: '65%',
           center: ['50%', '45%'],
-          data: stats.options.map(opt => ({
+          data: optionsWithCalculatedPercentage.map(opt => ({
             name: opt.text,
             value: opt.count
           })),
