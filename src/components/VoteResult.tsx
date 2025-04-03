@@ -1,9 +1,15 @@
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Typography, Empty } from 'antd';
+import { Typography, Empty, Card } from 'antd';
 import { VoteStats } from '../types';
+import type { EChartsOption } from 'echarts';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+
+// 定义图表参数类型
+interface ChartParams {
+  dataIndex: number;
+}
 
 interface VoteResultProps {
   stats: VoteStats | null;
@@ -11,17 +17,17 @@ interface VoteResultProps {
 
 const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
   if (!stats) {
-    return <Empty description="暂无投票数据" />;
+    return <Empty description={<Text style={{ fontSize: '22px' }}>暂无投票数据</Text>} />;
   }
 
   // 配置柱状图选项
-  const getBarOptions = () => {
+  const getBarOptions = (): EChartsOption => {
     return {
       title: {
         text: '投票结果统计',
         left: 'center',
         textStyle: {
-          fontSize: 16
+          fontSize: 24
         }
       },
       tooltip: {
@@ -29,16 +35,20 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
         axisPointer: {
           type: 'shadow'
         },
-        formatter: (params: any) => {
+        formatter: (params: ChartParams[]) => {
           const dataIndex = params[0].dataIndex;
           const option = stats.options[dataIndex];
           return `${option.text}: ${option.count}票 (${option.percentage.toFixed(2)}%)`;
+        },
+        textStyle: {
+          fontSize: 18
         }
       },
       grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '15%',
+        left: '5%',
+        right: '5%',
+        bottom: '18%',
+        top: '18%',
         containLabel: true
       },
       xAxis: {
@@ -46,28 +56,34 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
         data: stats.options.map(opt => {
           // 移动端显示时名称太长则截断
           const text = opt.text;
-          return text.length > 6 ? text.slice(0, 6) + '...' : text;
+          return text.length > 8 ? text.slice(0, 8) + '...' : text;
         }),
         axisLabel: {
           interval: 0,
           rotate: 45,
-          fontSize: 12
+          fontSize: 16,
+          margin: 16
         }
       },
       yAxis: {
         type: 'value',
         name: '票数',
         nameTextStyle: {
-          fontSize: 12
+          fontSize: 18,
+          padding: [0, 0, 0, 40]
+        },
+        axisLabel: {
+          fontSize: 16
         }
       },
       series: [
         {
           name: '票数',
           type: 'bar',
+          barWidth: '50%',
           data: stats.options.map(opt => opt.count),
           itemStyle: {
-            color: function(params: any) {
+            color: function(params: ChartParams) {
               // 为不同选项设置不同颜色
               const colorList = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4'];
               return colorList[params.dataIndex % colorList.length];
@@ -77,7 +93,8 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
             show: true,
             position: 'top',
             formatter: '{c}',
-            fontSize: 12
+            fontSize: 18,
+            fontWeight: 'bold'
           }
         }
       ]
@@ -85,18 +102,21 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
   };
 
   // 配置饼图选项
-  const getPieOptions = () => {
+  const getPieOptions = (): EChartsOption => {
     return {
       title: {
         text: '投票结果比例',
         left: 'center',
         textStyle: {
-          fontSize: 16
+          fontSize: 24
         }
       },
       tooltip: {
         trigger: 'item',
-        formatter: '{b}: {c}票 ({d}%)'
+        formatter: '{b}: {c}票 ({d}%)',
+        textStyle: {
+          fontSize: 18
+        }
       },
       legend: {
         orient: 'horizontal',
@@ -104,14 +124,15 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
         data: stats.options.map(opt => opt.text),
         type: 'scroll',
         textStyle: {
-          fontSize: 12
-        }
+          fontSize: 16
+        },
+        padding: [20, 0, 0, 0]
       },
       series: [
         {
           name: '投票比例',
           type: 'pie',
-          radius: '55%',
+          radius: '65%',
           center: ['50%', '45%'],
           data: stats.options.map(opt => ({
             name: opt.text,
@@ -126,7 +147,8 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
           },
           label: {
             formatter: '{b}: {d}%',
-            fontSize: 12
+            fontSize: 18,
+            fontWeight: 'bold'
           }
         }
       ]
@@ -134,16 +156,31 @@ const VoteResult: React.FC<VoteResultProps> = ({ stats }) => {
   };
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <Title level={4} style={{ fontSize: '18px' }}>实时投票结果（共 {stats.total_votes} 票）</Title>
+    <div style={{ marginTop: 40 }}>
+      <Title level={2} style={{ fontSize: '28px', marginBottom: '30px', textAlign: 'center' }}>
+        实时投票结果（共 {stats.total_votes} 票）
+      </Title>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div style={{ height: '350px', width: '100%' }}>
-          <ReactECharts option={getBarOptions()} style={{ height: '100%', width: '100%' }} opts={{ renderer: 'svg' }} />
-        </div>
-        <div style={{ height: '350px', width: '100%' }}>
-          <ReactECharts option={getPieOptions()} style={{ height: '100%', width: '100%' }} opts={{ renderer: 'svg' }} />
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+        <Card bodyStyle={{ padding: '30px' }} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
+          <div style={{ height: '500px', width: '100%' }}>
+            <ReactECharts 
+              option={getBarOptions()} 
+              style={{ height: '100%', width: '100%' }}
+              opts={{ renderer: 'svg' }}
+            />
+          </div>
+        </Card>
+        
+        <Card bodyStyle={{ padding: '30px' }} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
+          <div style={{ height: '500px', width: '100%' }}>
+            <ReactECharts 
+              option={getPieOptions()} 
+              style={{ height: '100%', width: '100%' }}
+              opts={{ renderer: 'svg' }}
+            />
+          </div>
+        </Card>
       </div>
     </div>
   );

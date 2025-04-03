@@ -43,7 +43,7 @@ function App() {
           },
           Table: {
             fontSize: 16,
-            cellPadding: 16,
+            padding: 16,
           },
           Typography: {
             fontSize: 18,
@@ -52,25 +52,30 @@ function App() {
       }}
     >
       <Router>
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', width: '100vw', maxWidth: '100%' }}>
           <Header style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            padding: '0 20px',
+            padding: '0 36px',
             position: 'sticky',
             top: 0,
             zIndex: 1000,
+            height: '80px',
+            width: '100%'
           }}>
-            <Typography.Title level={3} style={{ color: 'white', margin: 0 }}>
+            <Typography.Title level={3} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
               实时投票系统
             </Typography.Title>
           </Header>
-          <Content style={{ padding: '16px', margin: '0' }}>
+          <Content style={{ padding: '32px', margin: '0', flex: 1, width: '100%', maxWidth: '100%' }}>
             <div style={{ 
               background: '#fff', 
               padding: 0, 
-              minHeight: 280, 
-              borderRadius: 4 
+              minHeight: 'calc(100vh - 220px)', 
+              borderRadius: 8,
+              width: '100%',
+              maxWidth: '1800px',
+              margin: '0 auto'
             }}>
               <Routes>
                 <Route path="/" element={<VoteList />} />
@@ -78,7 +83,7 @@ function App() {
               </Routes>
             </div>
           </Content>
-          <Footer style={{ textAlign: 'center', padding: '12px 0' }}>
+          <Footer style={{ textAlign: 'center', padding: '20px 0', fontSize: '18px', width: '100%' }}>
             实时投票系统 ©{new Date().getFullYear()} Created by Your Team
           </Footer>
         </Layout>

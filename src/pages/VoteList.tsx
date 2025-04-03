@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Row, Col, Spin, Empty, Pagination, Switch, Space, Input } from 'antd';
+import { Typography, Row, Col, Spin, Empty, Pagination, Switch, Input, Card } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { VoteListItem } from '../types';
 import { voteApi } from '../services/api';
 import VoteItem from '../components/VoteItem';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const VoteList: React.FC = () => {
   const [votes, setVotes] = useState<VoteListItem[]>([]);
@@ -67,49 +67,62 @@ const VoteList: React.FC = () => {
     : votes;
 
   return (
-    <div style={{ padding: '16px 12px' }}>
-      <Title level={2} style={{ fontSize: '26px', marginBottom: '20px' }}>投票列表</Title>
+    <div style={{ padding: '28px 24px', maxWidth: '100%' }}>
+      <Title level={1} style={{ fontSize: '38px', marginBottom: '36px', textAlign: 'center' }}>投票列表</Title>
       
-      <div style={{ 
-        marginBottom: 16, 
-        display: 'flex', 
-        flexDirection: 'column',
-        gap: '12px'
-      }}>
-        <Space>
-          <Switch 
-            checked={activeOnly} 
-            onChange={setActiveOnly} 
-            checkedChildren="仅显示进行中" 
-            unCheckedChildren="显示所有" 
-          />
-        </Space>
-        
-        <Input 
-          placeholder="搜索投票标题或问题" 
-          onChange={e => setSearchText(e.target.value)}
-          style={{ width: '100%', maxWidth: '500px' }}
-          prefix={<SearchOutlined />}
-          allowClear
-          size="large"
-        />
-      </div>
+      <Card 
+        style={{ 
+          marginBottom: '32px', 
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+        }} 
+        bodyStyle={{ padding: '30px' }}
+      >
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          gap: '24px'
+        }}>
+          <div>
+            <Text strong style={{ fontSize: '22px', marginRight: '16px' }}>显示选项：</Text>
+            <Switch 
+              checked={activeOnly} 
+              onChange={setActiveOnly} 
+              checkedChildren="仅显示进行中" 
+              unCheckedChildren="显示所有" 
+              style={{ width: '180px', height: '38px' }}
+            />
+          </div>
+          
+          <div>
+            <Text strong style={{ fontSize: '22px', display: 'block', marginBottom: '12px' }}>搜索投票：</Text>
+            <Input 
+              placeholder="输入标题或问题关键词..." 
+              onChange={e => setSearchText(e.target.value)}
+              style={{ width: '100%', maxWidth: '900px', height: '54px' }}
+              prefix={<SearchOutlined style={{ fontSize: '22px', marginRight: '8px' }} />}
+              allowClear
+              size="large"
+            />
+          </div>
+        </div>
+      </Card>
       
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '50px 0' }}>
-          <Spin size="large" />
+        <div style={{ textAlign: 'center', padding: '120px 0' }}>
+          <Spin size="large" tip={<span style={{ fontSize: '22px', marginTop: '20px' }}>加载中...</span>} />
         </div>
       ) : filteredVotes.length > 0 ? (
         <>
-          <Row gutter={[16, 16]}>
+          <Row gutter={[32, 32]}>
             {filteredVotes.map(vote => (
-              <Col xs={24} sm={24} md={12} lg={8} xl={8} key={vote.id}>
+              <Col xs={24} sm={24} md={12} lg={8} xl={8} xxl={6} key={vote.id}>
                 <VoteItem vote={vote} />
               </Col>
             ))}
           </Row>
           
-          <div style={{ marginTop: 20, textAlign: 'center' }}>
+          <div style={{ marginTop: 60, textAlign: 'center' }}>
             <Pagination 
               current={pagination.current}
               pageSize={pagination.pageSize}
@@ -118,12 +131,20 @@ const VoteList: React.FC = () => {
               showSizeChanger
               showQuickJumper
               responsive
-              showTotal={total => `共 ${total} 个投票`}
+              showTotal={total => <span style={{ fontSize: '18px' }}>共 {total} 个投票</span>}
+              style={{ fontSize: '18px' }}
             />
           </div>
         </>
       ) : (
-        <Empty description="暂无投票数据" />
+        <div style={{ textAlign: 'center', padding: '100px 0' }}>
+          <Empty 
+            image={Empty.PRESENTED_IMAGE_DEFAULT}
+            imageStyle={{ height: 120 }}
+            description={<Text style={{ fontSize: '24px' }}>暂无投票数据</Text>} 
+            style={{ fontSize: '18px' }}
+          />
+        </div>
       )}
     </div>
   );

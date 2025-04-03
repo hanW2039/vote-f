@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Form, Radio, Checkbox, Button, message, Typography } from 'antd';
+import { Form, Radio, Checkbox, Button, message, Typography, Card } from 'antd';
 import { Vote, VoteSubmitRequest } from '../types';
 import { voteApi } from '../services/api';
 import axios from 'axios';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 interface VoteFormProps {
   vote: Vote;
@@ -54,18 +54,31 @@ const VoteForm: React.FC<VoteFormProps> = ({ vote, onVoteSubmitted }) => {
     >
       <Radio.Group style={{ width: '100%' }}>
         {vote.options.map(option => (
-          <Radio 
-            key={option.id} 
-            value={option.id} 
+          <Card
+            key={option.id}
             style={{ 
-              display: 'block', 
-              marginBottom: 16,
-              height: 'auto',
-              lineHeight: '32px'
+              marginBottom: 24, 
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
             }}
+            bodyStyle={{ padding: '18px 24px' }}
+            hoverable
           >
-            {option.option_text}
-          </Radio>
+            <Radio 
+              value={option.id} 
+              style={{ 
+                width: '100%',
+                height: 'auto',
+                lineHeight: '1.6',
+                fontSize: '22px',
+                padding: '10px 0'
+              }}
+            >
+              {option.option_text}
+            </Radio>
+          </Card>
         ))}
       </Radio.Group>
     </Form.Item>
@@ -79,26 +92,39 @@ const VoteForm: React.FC<VoteFormProps> = ({ vote, onVoteSubmitted }) => {
     >
       <Checkbox.Group style={{ width: '100%' }}>
         {vote.options.map(option => (
-          <Checkbox 
-            key={option.id} 
-            value={option.id} 
+          <Card
+            key={option.id}
             style={{ 
-              display: 'block', 
-              marginBottom: 16,
-              height: 'auto',
-              lineHeight: '32px'
+              marginBottom: 24, 
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
             }}
+            bodyStyle={{ padding: '18px 24px' }}
+            hoverable
           >
-            {option.option_text}
-          </Checkbox>
+            <Checkbox 
+              value={option.id} 
+              style={{ 
+                width: '100%',
+                height: 'auto',
+                lineHeight: '1.6',
+                fontSize: '22px',
+                padding: '10px 0'
+              }}
+            >
+              {option.option_text}
+            </Checkbox>
+          </Card>
         ))}
       </Checkbox.Group>
     </Form.Item>
   );
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <Title level={4} style={{ fontSize: '18px' }}>参与投票</Title>
+    <div style={{ marginTop: 36 }}>
+      <Title level={2} style={{ fontSize: '28px', marginBottom: '30px', textAlign: 'center' }}>参与投票</Title>
       
       <Form
         form={form}
@@ -110,18 +136,28 @@ const VoteForm: React.FC<VoteFormProps> = ({ vote, onVoteSubmitted }) => {
       >
         {isSingleVote ? renderSingleChoiceForm() : renderMultipleChoiceForm()}
         
-        <Form.Item>
+        <Form.Item style={{ textAlign: 'center', marginTop: '40px' }}>
           <Button 
             type="primary" 
             htmlType="submit" 
             loading={loading}
             disabled={isExpired}
             size="large"
-            style={{ minWidth: '120px' }}
+            style={{ 
+              minWidth: '240px', 
+              height: '60px', 
+              fontSize: '22px',
+              borderRadius: '12px',
+              fontWeight: 'bold'
+            }}
           >
             提交投票
           </Button>
-          {isExpired && <span style={{ marginLeft: 8, color: 'red', fontSize: '16px' }}>该投票已结束</span>}
+          {isExpired && (
+            <div style={{ marginTop: 20 }}>
+              <Text style={{ color: 'red', fontSize: '22px', fontWeight: 'bold' }}>该投票已结束</Text>
+            </div>
+          )}
         </Form.Item>
       </Form>
     </div>
