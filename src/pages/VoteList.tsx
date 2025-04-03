@@ -1,158 +1,366 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Row, Col, Spin, Empty, Pagination, Switch, Input, Card } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { Typography, Button, Card, Spin, Empty, Tag, Input, message } from 'antd';
+import { PlusOutlined, SearchOutlined, FireOutlined } from '@ant-design/icons';
 import { VoteListItem } from '../types';
 import { voteApi } from '../services/api';
-import VoteItem from '../components/VoteItem';
+import { motion } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title, Text } = Typography;
+const { Search } = Input;
+
+// 页面过渡动画
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    y: 20
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: 'easeOut'
+    }
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: {
+      duration: 0.3,
+      ease: 'easeIn'
+    }
+  }
+};
+
+// 列表项动画
+const listVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+// 单个列表项动画
+const itemVariants = {
+  hidden: { 
+    opacity: 0, 
+    y: 20,
+    scale: 0.95
+  },
+  show: { 
+    opacity: 1, 
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 260,
+      damping: 20
+    }
+  }
+};
 
 const VoteList: React.FC = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState<VoteListItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [activeOnly, setActiveOnly] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0
-  });
-
+  const [filteredVotes, setFilteredVotes] = useState<VoteListItem[]>([]);
+  const [searchValue, setSearchValue] = useState('');
+  const { isDarkMode } = useTheme();
+  
   // 加载投票列表
   const loadVotes = async () => {
     try {
       setLoading(true);
-      const skip = (pagination.current - 1) * pagination.pageSize;
-      const params = {
-        skip,
-        limit: pagination.pageSize,
-        active_only: activeOnly
-      };
-      
-      const data = await voteApi.getVoteList(params);
+      const data = await voteApi.getVoteList();
       setVotes(data);
-      
-      // 实际应用中这里应该从后端获取总数，这里简化处理
-      setPagination(prev => ({
-        ...prev,
-        total: data.length + skip // 这只是一个简化的计算方式
-      }));
+      setFilteredVotes(data);
     } catch (error) {
       console.error('获取投票列表失败', error);
+      message.error('获取投票列表失败，请稍后重试');
     } finally {
       setLoading(false);
     }
   };
-
-  // 首次加载和依赖变更时重新加载数据
+  
+  // 首次加载
   useEffect(() => {
     loadVotes();
-  }, [pagination.current, pagination.pageSize, activeOnly]);
-
-  // 处理分页变化
-  const handlePageChange = (page: number, pageSize?: number) => {
-    setPagination({
-      ...pagination,
-      current: page,
-      pageSize: pageSize || pagination.pageSize
+  }, []);
+  
+  // 搜索投票
+  const handleSearch = (value: string) => {
+    setSearchValue(value);
+    if (!value.trim()) {
+      setFilteredVotes(votes);
+      return;
+    }
+    
+    const filtered = votes.filter(vote => {
+      return vote.title.toLowerCase().includes(value.toLowerCase()) || 
+        vote.question.toLowerCase().includes(value.toLowerCase());
     });
+    
+    setFilteredVotes(filtered);
   };
-
-  // 筛选显示的投票（本地搜索功能）
-  const filteredVotes = searchText.trim() 
-    ? votes.filter(vote => 
-        vote.title.toLowerCase().includes(searchText.toLowerCase()) || 
-        vote.question.toLowerCase().includes(searchText.toLowerCase())
-      )
-    : votes;
-
+  
+  // 格式化日期
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('zh-CN');
+  };
+  
+  // 查看投票详情
+  const viewVoteDetail = (id: number) => {
+    navigate(`/vote/${id}`);
+  };
+  
+  // 创建新投票
+  const createNewVote = () => {
+    message.info('创建新投票功能即将上线');
+  };
+  
+  // 判断投票是否已过期
+  const isExpired = (endDate: string) => {
+    return new Date(endDate) < new Date();
+  };
+  
   return (
-    <div style={{ 
-      padding: '40px 40px', 
-      maxWidth: '100%', 
-      minHeight: 'calc(100vh - 160px)',
-      margin: 0,
-      width: '100%'
-    }}>
-      <Title level={1} style={{ fontSize: '38px', marginBottom: '36px', textAlign: 'center' }}>投票列表</Title>
-      
-      <Card 
-        style={{ 
-          marginBottom: '32px', 
-          borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-        }} 
-        bodyStyle={{ padding: '30px' }}
-      >
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      style={{ 
+        padding: '40px',
+        minHeight: 'calc(100vh - 160px)',
+        width: '100%',
+        background: isDarkMode ? '#000000' : '#f8f8f8'
+      }}
+    >
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '1200px', 
+        margin: '0 auto'
+      }}>
         <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: '24px'
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '40px',
+          flexWrap: 'wrap',
+          gap: '20px'
         }}>
           <div>
-            <Text strong style={{ fontSize: '22px', marginRight: '16px' }}>显示选项：</Text>
-            <Switch 
-              checked={activeOnly} 
-              onChange={setActiveOnly} 
-              checkedChildren="仅显示进行中" 
-              unCheckedChildren="显示所有" 
-              style={{ width: '180px', height: '38px' }}
-            />
+            <Title level={2} style={{ 
+              margin: 0, 
+              fontSize: '32px',
+              background: 'linear-gradient(to right, #fe2c55, #25f4ee)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              <FireOutlined style={{ marginRight: '16px' }} />
+              发现投票
+            </Title>
+            <Text style={{ 
+              display: 'block', 
+              marginTop: '10px', 
+              fontSize: '16px',
+              color: isDarkMode ? '#aaaaaa' : '#666666'
+            }}>
+              从下面选择一个投票参与，或者创建自己的投票
+            </Text>
           </div>
           
-          <div>
-            <Text strong style={{ fontSize: '22px', display: 'block', marginBottom: '12px' }}>搜索投票：</Text>
-            <Input 
-              placeholder="输入标题或问题关键词..." 
-              onChange={e => setSearchText(e.target.value)}
-              style={{ width: '100%', maxWidth: '900px', height: '54px' }}
-              prefix={<SearchOutlined style={{ fontSize: '22px', marginRight: '8px' }} />}
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <Search
+              placeholder="搜索投票"
               allowClear
+              enterButton={<SearchOutlined />}
               size="large"
+              onSearch={handleSearch}
+              onChange={(e) => setSearchValue(e.target.value)}
+              style={{ width: 250 }}
             />
+            
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                type="primary" 
+                size="large" 
+                icon={<PlusOutlined />} 
+                onClick={createNewVote}
+                style={{
+                  background: '#fe2c55',
+                  borderColor: '#fe2c55',
+                  height: '50px',
+                  fontSize: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 12px rgba(254, 44, 85, 0.3)'
+                }}
+              >
+                创建投票
+              </Button>
+            </motion.div>
           </div>
         </div>
-      </Card>
-      
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '120px 0' }}>
-          <Spin size="large" tip={<span style={{ fontSize: '22px', marginTop: '20px' }}>加载中...</span>} />
-        </div>
-      ) : filteredVotes.length > 0 ? (
-        <>
-          <Row gutter={[32, 32]}>
-            {filteredVotes.map(vote => (
-              <Col xs={24} sm={24} md={12} lg={8} xl={8} xxl={6} key={vote.id}>
-                <VoteItem vote={vote} />
-              </Col>
-            ))}
-          </Row>
-          
-          <div style={{ marginTop: 60, textAlign: 'center', paddingBottom: 40 }}>
-            <Pagination 
-              current={pagination.current}
-              pageSize={pagination.pageSize}
-              total={pagination.total}
-              onChange={handlePageChange}
-              showSizeChanger
-              showQuickJumper
-              responsive
-              showTotal={total => <span style={{ fontSize: '18px' }}>共 {total} 个投票</span>}
-              style={{ fontSize: '18px' }}
-            />
+        
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '100px 0' }}>
+            <Spin size="large" tip={<span style={{ marginTop: '15px', color: '#fe2c55' }}>加载中...</span>} />
           </div>
-        </>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '100px 0' }}>
+        ) : filteredVotes.length === 0 ? (
           <Empty 
-            image={Empty.PRESENTED_IMAGE_DEFAULT}
-            imageStyle={{ height: 120 }}
-            description={<Text style={{ fontSize: '24px' }}>暂无投票数据</Text>} 
-            style={{ fontSize: '18px' }}
+            description={
+              searchValue ? 
+                <Text style={{ fontSize: '18px', color: isDarkMode ? '#aaaaaa' : '#666666' }}>未找到与 "{searchValue}" 相关的投票</Text> : 
+                <Text style={{ fontSize: '18px', color: isDarkMode ? '#aaaaaa' : '#666666' }}>暂无投票</Text>
+            }
+            style={{ margin: '80px 0' }}
+            imageStyle={{ filter: isDarkMode ? 'invert(0.8)' : 'invert(0.2)' }}
           />
-        </div>
-      )}
-    </div>
+        ) : (
+          <motion.div
+            variants={listVariants}
+            initial="hidden"
+            animate="show"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+              gap: '24px',
+              width: '100%'
+            }}
+          >
+            {filteredVotes.map(vote => (
+              <motion.div key={vote.id} variants={itemVariants}>
+                <Card
+                  style={{ 
+                    borderRadius: '16px',
+                    background: isDarkMode ? '#1a1a1a' : '#ffffff',
+                    border: 'none',
+                    overflow: 'hidden',
+                    height: '100%',
+                    cursor: 'pointer',
+                    boxShadow: isDarkMode 
+                      ? '0 8px 24px rgba(0, 0, 0, 0.2)' 
+                      : '0 8px 24px rgba(0, 0, 0, 0.06)',
+                    position: 'relative'
+                  }}
+                  bodyStyle={{ padding: '24px' }}
+                  onClick={() => viewVoteDetail(vote.id)}
+                  hoverable
+                >
+                  <motion.div
+                    whileHover={{ 
+                      y: -5,
+                      transition: { duration: 0.2 }
+                    }}
+                  >
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: '-20px', 
+                      right: '-20px',
+                      width: '100px',
+                      height: '100px',
+                      borderRadius: '50%',
+                      background: 'radial-gradient(circle, rgba(254, 44, 85, 0.1) 0%, rgba(0, 0, 0, 0) 70%)',
+                      zIndex: 0
+                    }} />
+                    
+                    <div style={{ marginBottom: '20px' }}>
+                      <Title level={4} style={{ 
+                        marginTop: 0, 
+                        marginBottom: '8px',
+                        fontSize: '22px',
+                        fontWeight: 'bold',
+                        color: isDarkMode ? '#ffffff' : '#222222'
+                      }}>
+                        {vote.title}
+                      </Title>
+                      <Text style={{ 
+                        fontSize: '16px',
+                        display: 'block',
+                        marginBottom: '16px',
+                        color: isDarkMode ? '#aaaaaa' : '#666666',
+                        minHeight: '48px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}>
+                        {vote.question}
+                      </Text>
+                    </div>
+                    
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      marginBottom: '16px'
+                    }}>
+                      <div>
+                        <Tag color={vote.vote_type === 'single' ? '#25f4ee' : '#fe2c55'} style={{ 
+                          marginRight: '8px',
+                          fontSize: '14px',
+                          padding: '2px 8px',
+                          borderRadius: '4px'
+                        }}>
+                          {vote.vote_type === 'single' ? '单选' : '多选'}
+                        </Tag>
+                        
+                        <Tag color={isExpired(vote.end_time) ? '#666666' : '#52c41a'} style={{ 
+                          fontSize: '14px',
+                          padding: '2px 8px',
+                          borderRadius: '4px'
+                        }}>
+                          {isExpired(vote.end_time) ? '已结束' : '进行中'}
+                        </Tag>
+                      </div>
+                      
+                      <Text style={{ 
+                        color: isDarkMode ? '#aaaaaa' : '#666666', 
+                        fontSize: '14px' 
+                      }}>
+                        {vote.options_count} 个选项
+                      </Text>
+                    </div>
+                    
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                      borderRadius: '8px'
+                    }}>
+                      <div>
+                        <Text style={{ color: isDarkMode ? '#aaaaaa' : '#666666', fontSize: '13px' }}>开始时间</Text>
+                        <Text style={{ color: isDarkMode ? '#ffffff' : '#222222', display: 'block', fontSize: '14px' }}>{formatDate(vote.start_time)}</Text>
+                      </div>
+                      
+                      <div style={{ textAlign: 'right' }}>
+                        <Text style={{ color: isDarkMode ? '#aaaaaa' : '#666666', fontSize: '13px' }}>结束时间</Text>
+                        <Text style={{ 
+                          color: isExpired(vote.end_time) ? '#ff7875' : (isDarkMode ? '#ffffff' : '#222222'), 
+                          display: 'block',
+                          fontSize: '14px'
+                        }}>
+                          {formatDate(vote.end_time)}
+                        </Text>
+                      </div>
+                    </div>
+                  </motion.div>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
   );
 };
 

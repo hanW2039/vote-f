@@ -58,4 +58,18 @@ export interface ApiResponse<T> {
   code: number;
   message: string;
   data: T;
+}
+
+// API错误代码
+export enum ApiErrorCode {
+  // 通用错误
+  UNKNOWN_ERROR = 10000,
+  VALIDATION_ERROR = 10001,
+  
+  // 投票相关错误
+  VOTE_NOT_FOUND = 20001,
+  VOTE_EXPIRED = 20002,
+  OPTION_NOT_FOUND = 20003,
+  DUPLICATE_VOTE = 20004,
+  VOTE_CLOSED = 20005
 } 

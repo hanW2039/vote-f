@@ -49,3 +49,101 @@
 .read-the-docs {
   color: #888;
 }
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* 设置主题相关CSS变量 */
+:root {
+  --transition-time: 0.3s;
+}
+
+/* 定义明暗模式切换的过渡效果 */
+* {
+  transition: background-color var(--transition-time) ease,
+              border-color var(--transition-time) ease,
+              color var(--transition-time) ease,
+              box-shadow var(--transition-time) ease;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .ant-card, .ant-form, .ant-input, .ant-select, .ant-button {
+    border-radius: 8px !important;
+  }
+  
+  .ant-typography {
+    font-size: 16px !important;
+  }
+  
+  h1.ant-typography {
+    font-size: 28px !important;
+  }
+  
+  h2.ant-typography {
+    font-size: 24px !important;
+  }
+  
+  h3.ant-typography {
+    font-size: 20px !important;
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(254, 44, 85, 0.5);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(254, 44, 85, 0.8);
+}
+
+/* 设置链接样式 */
+a {
+  color: #fe2c55;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 明暗主题动画过渡 */
+.theme-transition-enter {
+  opacity: 0;
+}
+
+.theme-transition-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.theme-transition-exit {
+  opacity: 1;
+}
+
+.theme-transition-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}

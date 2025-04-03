@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 import { 
   ApiResponse, 
   Vote, 
@@ -15,6 +15,18 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 错误拦截器
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<ApiResponse<null>>) => {
+    // 如果是API返回的错误消息，确保错误对象包含完整信息
+    if (error.response?.data) {
+      error.message = error.response.data.message || error.message;
+    }
+    return Promise.reject(error);
+  }
+);
 
 // 处理响应数据
 const handleResponse = <T>(response: AxiosResponse<ApiResponse<T>>): T => {
