@@ -7,6 +7,7 @@ import { voteApi } from '../services/api';
 import { useSSE } from '../hooks/useSSE';
 import VoteForm from '../components/VoteForm';
 import VoteResult from '../components/VoteResult';
+import { motion } from 'framer-motion';
 
 const { Title, Text } = Typography;
 
@@ -98,122 +99,230 @@ const VoteDetail: React.FC = () => {
   
   if (loading) {
     return (
-      <div style={{ 
-        textAlign: 'center', 
-        padding: '150px 0', 
-        minHeight: 'calc(100vh - 160px)',
-        width: '100%'
-      }}>
-        <Spin size="large" tip={<span style={{ fontSize: '22px', marginTop: '15px' }}>加载中...</span>} />
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        style={{ 
+          textAlign: 'center', 
+          padding: '150px 0', 
+          minHeight: 'calc(100vh - 160px)',
+          width: '100%'
+        }}
+      >
+        <Spin size="large" tip={
+          <span style={{ 
+            fontSize: '22px', 
+            marginTop: '15px',
+            background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 'bold'
+          }}>
+            加载中...
+          </span>
+        } />
+      </motion.div>
     );
   }
   
   if (error || !vote) {
     return (
-      <div style={{ 
-        textAlign: 'center', 
-        padding: '120px 0', 
-        minHeight: 'calc(100vh - 160px)',
-        width: '100%'
-      }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{ 
+          textAlign: 'center', 
+          padding: '120px 0', 
+          minHeight: 'calc(100vh - 160px)',
+          width: '100%'
+        }}
+      >
         <Alert
-          message={<Title level={3} style={{ margin: 0 }}>出错了</Title>}
+          message={<Title level={3} style={{ margin: 0, color: '#fe2c55' }}>出错了</Title>}
           description={<Text style={{ fontSize: '22px' }}>{error || '投票不存在'}</Text>}
           type="error"
           showIcon
           style={{ width: '80%', maxWidth: '600px', margin: '0 auto 40px auto', padding: '24px' }}
         />
-        <Button type="primary" onClick={goBack} size="large" style={{ fontSize: '20px', height: '54px', padding: '0 40px' }}>
-          返回投票列表
-        </Button>
-      </div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button 
+            type="primary" 
+            onClick={goBack} 
+            size="large" 
+            style={{ 
+              fontSize: '20px', 
+              height: '54px', 
+              padding: '0 40px',
+              background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
+              borderColor: 'transparent',
+              fontWeight: 'bold',
+              boxShadow: '0 8px 16px rgba(254, 44, 85, 0.25)'
+            }}
+          >
+            返回投票列表
+          </Button>
+        </motion.div>
+      </motion.div>
     );
   }
   
   const isExpired = new Date(vote.end_time) < new Date();
   
   return (
-    <div style={{ 
-      padding: '40px', 
-      minHeight: 'calc(100vh - 160px)',
-      margin: 0,
-      width: '100%'
-    }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      style={{ 
+        padding: '40px', 
+        minHeight: 'calc(100vh - 160px)',
+        margin: 0,
+        width: '100%'
+      }}
+    >
       <div style={{ 
         width: '100%', 
         maxWidth: '1600px', 
         margin: '0 auto', 
         padding: 0
       }}>
-        <div style={{ marginBottom: 36 }}>
-          <Button 
-            type="text" 
-            icon={<ArrowLeftOutlined style={{ fontSize: '24px' }} />} 
-            onClick={goBack}
-            size="large"
-            style={{ fontSize: '22px', height: '60px', padding: '0 20px' }}
-          >
-            返回列表
-          </Button>
-        </div>
-        
-        <Card 
-          bodyStyle={{ padding: '36px' }} 
-          style={{ 
-            borderRadius: '12px',
-            boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)'
-          }}
+        <motion.div 
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          style={{ marginBottom: 36 }}
         >
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            gap: '32px' 
-          }}>
-            <div>
-              <Title level={1} style={{ fontSize: '36px', marginBottom: '20px' }}>{vote.title}</Title>
-              <Space size="large">
-                <Tag color={vote.vote_type === 'single' ? 'blue' : 'purple'} style={{ fontSize: '18px', padding: '6px 16px' }}>
-                  {vote.vote_type === 'single' ? '单选' : '多选'}
-                </Tag>
-                {isExpired && <Tag color="red" style={{ fontSize: '18px', padding: '6px 16px' }}>已结束</Tag>}
-              </Space>
-            </div>
-            
+          <motion.div whileHover={{ x: -5 }} whileTap={{ scale: 0.95 }}>
             <Button 
               type="primary" 
-              danger 
-              icon={<DeleteOutlined style={{ fontSize: '22px' }} />} 
-              onClick={handleDeleteVote}
-              style={{ alignSelf: 'flex-start', fontSize: '20px', height: '50px', padding: '0 30px' }}
+              icon={<ArrowLeftOutlined style={{ fontSize: '20px' }} />} 
+              onClick={goBack}
               size="large"
+              className="tiktok-button"
+              style={{ 
+                fontSize: '18px', 
+                height: '50px', 
+                padding: '0 24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'bold',
+                background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
+                border: 'none',
+                borderRadius: '12px',
+                boxShadow: '0 8px 16px rgba(254, 44, 85, 0.25)'
+              }}
             >
-              删除投票
+              返回列表
             </Button>
-          </div>
-          
-          <div style={{ marginTop: 36 }}>
-            <Title level={3} style={{ fontSize: '26px', marginBottom: '20px' }}>{vote.question}</Title>
-            <Text style={{ fontSize: '18px', display: 'block', marginBottom: '12px' }}>
-              <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>开始时间:</Text> 
-              {formatDate(vote.start_time)}
-            </Text>
-            <Text style={{ fontSize: '18px', display: 'block' }}>
-              <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>结束时间:</Text> 
-              {formatDate(vote.end_time)}
-            </Text>
-          </div>
-          
-          <Divider style={{ margin: '40px 0', borderWidth: '2px' }} />
-          
-          <VoteForm vote={vote} onVoteSubmitted={handleVoteSubmitted} />
-          
-          <Divider style={{ margin: '40px 0', borderWidth: '2px' }} />
-          
-          <VoteResult stats={stats} />
-        </Card>
+          </motion.div>
+        </motion.div>
+        
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card 
+            className="tiktok-card"
+            bodyStyle={{ padding: '36px' }} 
+            style={{ 
+              borderRadius: '16px',
+              boxShadow: '0 12px 24px rgba(0, 0, 0, 0.08)',
+              border: 'none'
+            }}
+          >
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: '32px' 
+            }}>
+              <div>
+                <Title level={1} style={{ 
+                  fontSize: '36px', 
+                  marginBottom: '20px',
+                  background: 'linear-gradient(45deg, #fe2c55, #25f4ee)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontWeight: 'bold'
+                }}>{vote.title}</Title>
+                <Space size="large">
+                  <Tag color={vote.vote_type === 'single' ? '#25f4ee' : '#fe2c55'} style={{ 
+                    fontSize: '16px', 
+                    padding: '6px 16px',
+                    borderRadius: '16px',
+                    fontWeight: '600'
+                  }}>
+                    {vote.vote_type === 'single' ? '单选' : '多选'}
+                  </Tag>
+                  {isExpired && <Tag color="#666" style={{ 
+                    fontSize: '16px', 
+                    padding: '6px 16px',
+                    borderRadius: '16px',
+                    fontWeight: '600',
+                    background: 'rgba(0, 0, 0, 0.06)'
+                  }}>已结束</Tag>}
+                  {!isExpired && <Tag color="#fe2c55" style={{ 
+                    fontSize: '16px', 
+                    padding: '6px 16px',
+                    borderRadius: '16px',
+                    fontWeight: '600',
+                    background: 'rgba(254, 44, 85, 0.08)'
+                  }}>进行中</Tag>}
+                </Space>
+              </div>
+              
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  type="primary" 
+                  danger 
+                  icon={<DeleteOutlined style={{ fontSize: '18px' }} />} 
+                  onClick={handleDeleteVote}
+                  style={{ 
+                    alignSelf: 'flex-start', 
+                    fontSize: '16px', 
+                    height: '46px', 
+                    padding: '0 24px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(254, 44, 85, 0.1)',
+                    color: '#fe2c55',
+                    border: '1px solid rgba(254, 44, 85, 0.2)',
+                    fontWeight: '600'
+                  }}
+                  size="large"
+                >
+                  删除投票
+                </Button>
+              </motion.div>
+            </div>
+            
+            <div style={{ marginTop: 36 }}>
+              <Title level={3} style={{ fontSize: '26px', marginBottom: '20px' }}>{vote.question}</Title>
+              <Text style={{ fontSize: '18px', display: 'block', marginBottom: '12px' }}>
+                <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>开始时间:</Text> 
+                {formatDate(vote.start_time)}
+              </Text>
+              <Text style={{ fontSize: '18px', display: 'block' }}>
+                <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>结束时间:</Text> 
+                {formatDate(vote.end_time)}
+              </Text>
+            </div>
+            
+            <Divider style={{ margin: '40px 0', borderWidth: '1px', borderColor: 'var(--border-color)' }} />
+            
+            <VoteForm vote={vote} onVoteSubmitted={handleVoteSubmitted} />
+            
+            <Divider style={{ margin: '40px 0', borderWidth: '1px', borderColor: 'var(--border-color)' }} />
+            
+            <VoteResult stats={stats} />
+          </Card>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

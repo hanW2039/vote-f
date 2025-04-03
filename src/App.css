@@ -49,3 +49,162 @@
 .read-the-docs {
   color: #888;
 }
+
+/* 全局样式 */
+:root {
+  --primary-color: #fe2c55;
+  --secondary-color: #25f4ee;
+  --text-color: #121212;
+  --secondary-text-color: #666666;
+  --bg-color: #f8f8f8;
+  --card-bg-color: #ffffff;
+  --border-color: #f0f0f0;
+  --border-radius: 8px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --animation-duration: 0.3s;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 抖音渐变文字 */
+.tiktok-text-gradient {
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* 抖音按钮样式 */
+.tiktok-button {
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  border: none;
+  border-radius: var(--border-radius);
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all var(--animation-duration) ease;
+  box-shadow: 0 4px 12px rgba(254, 44, 85, 0.25);
+}
+
+.tiktok-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(254, 44, 85, 0.35);
+}
+
+.tiktok-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(254, 44, 85, 0.25);
+}
+
+/* 抖音卡片样式 */
+.tiktok-card {
+  background-color: var(--card-bg-color);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  transition: transform var(--animation-duration) ease;
+}
+
+.tiktok-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* 抖音标签样式 */
+.tiktok-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 8px;
+  background: rgba(254, 44, 85, 0.1);
+  color: var(--primary-color);
+}
+
+/* 输入框聚焦样式 */
+.ant-input:focus, 
+.ant-input-focused {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(254, 44, 85, 0.1);
+}
+
+/* 选择器样式 */
+.ant-select-focused .ant-select-selector {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(254, 44, 85, 0.1) !important;
+}
+
+/* 按钮主题 */
+.ant-btn-primary {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.ant-btn-primary:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(254, 44, 85, 0.25);
+}
+
+/* 链接样式 */
+a {
+  color: var(--primary-color);
+  transition: color var(--animation-duration) ease;
+}
+
+a:hover {
+  color: var(--secondary-color);
+}
+
+/* 抖音Switch组件样式 */
+.tiktok-switch.ant-switch {
+  height: 54px;
+  min-width: 200px;
+  border-radius: 12px;
+  transition: all var(--animation-duration) ease;
+  position: relative;
+}
+
+.tiktok-switch.ant-switch .ant-switch-handle {
+  width: 42px;
+  height: 42px;
+  top: 6px;
+  inset-inline-start: 6px;
+  border-radius: 9px;
+  z-index: 2;
+}
+
+.tiktok-switch.ant-switch.ant-switch-checked .ant-switch-handle {
+  inset-inline-start: calc(100% - 48px);
+}
+
+.tiktok-switch.ant-switch .ant-switch-inner {
+  font-size: 16px;
+  height: 54px;
+  line-height: 54px;
+  text-align: center;
+  padding: 0 !important;
+}
+
+.tiktok-switch.ant-switch .ant-switch-inner-checked,
+.tiktok-switch.ant-switch .ant-switch-inner-unchecked {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
