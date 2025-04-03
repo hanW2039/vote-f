@@ -98,7 +98,12 @@ const VoteDetail: React.FC = () => {
   
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '150px 0' }}>
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '150px 0', 
+        minHeight: 'calc(100vh - 160px)',
+        width: '100%'
+      }}>
         <Spin size="large" tip={<span style={{ fontSize: '22px', marginTop: '15px' }}>加载中...</span>} />
       </div>
     );
@@ -106,7 +111,12 @@ const VoteDetail: React.FC = () => {
   
   if (error || !vote) {
     return (
-      <div style={{ textAlign: 'center', padding: '120px 0' }}>
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '120px 0', 
+        minHeight: 'calc(100vh - 160px)',
+        width: '100%'
+      }}>
         <Alert
           message={<Title level={3} style={{ margin: 0 }}>出错了</Title>}
           description={<Text style={{ fontSize: '22px' }}>{error || '投票不存在'}</Text>}
@@ -124,73 +134,85 @@ const VoteDetail: React.FC = () => {
   const isExpired = new Date(vote.end_time) < new Date();
   
   return (
-    <div style={{ padding: '30px', maxWidth: '1600px', margin: '0 auto' }}>
-      <div style={{ marginBottom: 36 }}>
-        <Button 
-          type="text" 
-          icon={<ArrowLeftOutlined style={{ fontSize: '24px' }} />} 
-          onClick={goBack}
-          size="large"
-          style={{ fontSize: '22px', height: '60px', padding: '0 20px' }}
-        >
-          返回列表
-        </Button>
-      </div>
-      
-      <Card 
-        bodyStyle={{ padding: '36px' }} 
-        style={{ 
-          borderRadius: '12px',
-          boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)'
-        }}
-      >
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: '32px' 
-        }}>
-          <div>
-            <Title level={1} style={{ fontSize: '36px', marginBottom: '20px' }}>{vote.title}</Title>
-            <Space size="large">
-              <Tag color={vote.vote_type === 'single' ? 'blue' : 'purple'} style={{ fontSize: '18px', padding: '6px 16px' }}>
-                {vote.vote_type === 'single' ? '单选' : '多选'}
-              </Tag>
-              {isExpired && <Tag color="red" style={{ fontSize: '18px', padding: '6px 16px' }}>已结束</Tag>}
-            </Space>
-          </div>
-          
+    <div style={{ 
+      padding: '40px', 
+      minHeight: 'calc(100vh - 160px)',
+      margin: 0,
+      width: '100%'
+    }}>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '1600px', 
+        margin: '0 auto', 
+        padding: 0
+      }}>
+        <div style={{ marginBottom: 36 }}>
           <Button 
-            type="primary" 
-            danger 
-            icon={<DeleteOutlined style={{ fontSize: '22px' }} />} 
-            onClick={handleDeleteVote}
-            style={{ alignSelf: 'flex-start', fontSize: '20px', height: '50px', padding: '0 30px' }}
+            type="text" 
+            icon={<ArrowLeftOutlined style={{ fontSize: '24px' }} />} 
+            onClick={goBack}
             size="large"
+            style={{ fontSize: '22px', height: '60px', padding: '0 20px' }}
           >
-            删除投票
+            返回列表
           </Button>
         </div>
         
-        <div style={{ marginTop: 36 }}>
-          <Title level={3} style={{ fontSize: '26px', marginBottom: '20px' }}>{vote.question}</Title>
-          <Text style={{ fontSize: '18px', display: 'block', marginBottom: '12px' }}>
-            <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>开始时间:</Text> 
-            {formatDate(vote.start_time)}
-          </Text>
-          <Text style={{ fontSize: '18px', display: 'block' }}>
-            <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>结束时间:</Text> 
-            {formatDate(vote.end_time)}
-          </Text>
-        </div>
-        
-        <Divider style={{ margin: '40px 0', borderWidth: '2px' }} />
-        
-        <VoteForm vote={vote} onVoteSubmitted={handleVoteSubmitted} />
-        
-        <Divider style={{ margin: '40px 0', borderWidth: '2px' }} />
-        
-        <VoteResult stats={stats} />
-      </Card>
+        <Card 
+          bodyStyle={{ padding: '36px' }} 
+          style={{ 
+            borderRadius: '12px',
+            boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: '32px' 
+          }}>
+            <div>
+              <Title level={1} style={{ fontSize: '36px', marginBottom: '20px' }}>{vote.title}</Title>
+              <Space size="large">
+                <Tag color={vote.vote_type === 'single' ? 'blue' : 'purple'} style={{ fontSize: '18px', padding: '6px 16px' }}>
+                  {vote.vote_type === 'single' ? '单选' : '多选'}
+                </Tag>
+                {isExpired && <Tag color="red" style={{ fontSize: '18px', padding: '6px 16px' }}>已结束</Tag>}
+              </Space>
+            </div>
+            
+            <Button 
+              type="primary" 
+              danger 
+              icon={<DeleteOutlined style={{ fontSize: '22px' }} />} 
+              onClick={handleDeleteVote}
+              style={{ alignSelf: 'flex-start', fontSize: '20px', height: '50px', padding: '0 30px' }}
+              size="large"
+            >
+              删除投票
+            </Button>
+          </div>
+          
+          <div style={{ marginTop: 36 }}>
+            <Title level={3} style={{ fontSize: '26px', marginBottom: '20px' }}>{vote.question}</Title>
+            <Text style={{ fontSize: '18px', display: 'block', marginBottom: '12px' }}>
+              <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>开始时间:</Text> 
+              {formatDate(vote.start_time)}
+            </Text>
+            <Text style={{ fontSize: '18px', display: 'block' }}>
+              <Text strong style={{ fontSize: '18px', marginRight: '8px' }}>结束时间:</Text> 
+              {formatDate(vote.end_time)}
+            </Text>
+          </div>
+          
+          <Divider style={{ margin: '40px 0', borderWidth: '2px' }} />
+          
+          <VoteForm vote={vote} onVoteSubmitted={handleVoteSubmitted} />
+          
+          <Divider style={{ margin: '40px 0', borderWidth: '2px' }} />
+          
+          <VoteResult stats={stats} />
+        </Card>
+      </div>
     </div>
   );
 };

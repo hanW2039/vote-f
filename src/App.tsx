@@ -52,7 +52,16 @@ function App() {
       }}
     >
       <Router>
-        <Layout style={{ minHeight: '100vh', width: '100vw', maxWidth: '100%' }}>
+        <Layout 
+          style={{ 
+            minHeight: '100vh', 
+            width: '100vw', 
+            maxWidth: '100%',
+            margin: 0,
+            padding: 0,
+            overflow: 'hidden' 
+          }}
+        >
           <Header style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -61,21 +70,28 @@ function App() {
             top: 0,
             zIndex: 1000,
             height: '80px',
-            width: '100%'
+            width: '100%',
+            margin: 0,
           }}>
             <Typography.Title level={3} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
               实时投票系统
             </Typography.Title>
           </Header>
-          <Content style={{ padding: '32px', margin: '0', flex: 1, width: '100%', maxWidth: '100%' }}>
+          <Content style={{ 
+            padding: 0, 
+            margin: 0, 
+            flex: 1, 
+            width: '100%', 
+            maxWidth: '100%',
+            overflow: 'auto'
+          }}>
             <div style={{ 
               background: '#fff', 
               padding: 0, 
-              minHeight: 'calc(100vh - 220px)', 
-              borderRadius: 8,
+              minHeight: 'calc(100vh - 160px)', 
+              borderRadius: 0,
               width: '100%',
-              maxWidth: '1800px',
-              margin: '0 auto'
+              margin: 0
             }}>
               <Routes>
                 <Route path="/" element={<VoteList />} />
@@ -83,7 +99,13 @@ function App() {
               </Routes>
             </div>
           </Content>
-          <Footer style={{ textAlign: 'center', padding: '20px 0', fontSize: '18px', width: '100%' }}>
+          <Footer style={{ 
+            textAlign: 'center', 
+            padding: '20px 0', 
+            fontSize: '18px', 
+            width: '100%',
+            margin: 0
+          }}>
             实时投票系统 ©{new Date().getFullYear()} Created by Your Team
           </Footer>
         </Layout>

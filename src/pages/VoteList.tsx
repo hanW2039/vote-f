@@ -67,7 +67,13 @@ const VoteList: React.FC = () => {
     : votes;
 
   return (
-    <div style={{ padding: '28px 24px', maxWidth: '100%' }}>
+    <div style={{ 
+      padding: '40px 40px', 
+      maxWidth: '100%', 
+      minHeight: 'calc(100vh - 160px)',
+      margin: 0,
+      width: '100%'
+    }}>
       <Title level={1} style={{ fontSize: '38px', marginBottom: '36px', textAlign: 'center' }}>投票列表</Title>
       
       <Card 
@@ -122,7 +128,7 @@ const VoteList: React.FC = () => {
             ))}
           </Row>
           
-          <div style={{ marginTop: 60, textAlign: 'center' }}>
+          <div style={{ marginTop: 60, textAlign: 'center', paddingBottom: 40 }}>
             <Pagination 
               current={pagination.current}
               pageSize={pagination.pageSize}
