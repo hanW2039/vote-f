@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Row, Col, Spin, Empty, Pagination, Input, Card, Button, Modal, Form, DatePicker, Radio, message } from 'antd';
+import { Typography, Row, Col, Spin, Empty, Pagination, Input, Card, Button, Modal, Form, DatePicker, Radio } from 'antd';
 import { SearchOutlined, ThunderboltOutlined, HistoryOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { VoteListItem } from '../types';
 import { voteApi } from '../services/api';
 import VoteItem from '../components/VoteItem';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
+import MessageModal from '../components/MessageModal';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -48,6 +49,15 @@ const VoteList: React.FC = () => {
     current: 1,
     pageSize: 10,
     total: 0
+  });
+  const [messageModal, setMessageModal] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
   });
   
   // 加载投票列表
@@ -98,6 +108,23 @@ const VoteList: React.FC = () => {
       )
     : votes;
   
+  // 显示消息弹窗
+  const showMessageModal = (message: string, type: 'success' | 'error') => {
+    setMessageModal({
+      visible: true,
+      message,
+      type,
+    });
+  };
+  
+  // 关闭消息弹窗
+  const closeMessageModal = () => {
+    setMessageModal(prev => ({
+      ...prev,
+      visible: false,
+    }));
+  };
+  
   // 处理创建投票
   const handleCreateVote = async (values: {
     title: string;
@@ -112,7 +139,7 @@ const VoteList: React.FC = () => {
       const filteredOptions = options.filter(option => option.trim() !== '');
       
       if (filteredOptions.length < 2) {
-        message.error('至少需要2个有效选项');
+        showMessageModal('至少需要2个有效选项', 'error');
         setSubmitting(false);
         return;
       }
@@ -128,18 +155,23 @@ const VoteList: React.FC = () => {
       
       console.log('提交的投票数据:', voteData);
       
-      await voteApi.createVote(voteData);
+      const response = await voteApi.createVote(voteData);
       
-      message.success('投票创建成功');
-      setCreateModalVisible(false);
-      createForm.resetFields();
-      setOptions(['', '']);
-      
-      // 重新加载投票列表
-      loadVotes();
+      // 使用API返回的消息
+      if (response.success) {
+        showMessageModal(response.message || '投票创建成功', 'success');
+        setCreateModalVisible(false);
+        createForm.resetFields();
+        setOptions(['', '']);
+        
+        // 重新加载投票列表
+        loadVotes();
+      } else {
+        showMessageModal(response.message || '创建失败，请稍后重试', 'error');
+      }
     } catch (error) {
       console.error('创建投票失败', error);
-      message.error('创建投票失败，请稍后重试');
+      showMessageModal('创建投票失败，请稍后重试', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -153,7 +185,7 @@ const VoteList: React.FC = () => {
   // 删除选项
   const removeOption = (index: number) => {
     if (options.length <= 2) {
-      message.warning('至少需要保留2个选项');
+      showMessageModal('至少需要保留2个选项', 'error');
       return;
     }
     
@@ -586,6 +618,13 @@ const VoteList: React.FC = () => {
       )}
       
       {renderCreateModal()}
+      
+      <MessageModal
+        visible={messageModal.visible}
+        message={messageModal.message}
+        type={messageModal.type}
+        onClose={closeMessageModal}
+      />
     </motion.div>
   );
 };

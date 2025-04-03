@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Divider, Spin, Card, Button, message, Tag, Space, Alert } from 'antd';
+import { Typography, Divider, Spin, Card, Button, Tag, Space, Alert } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Vote, VoteStats } from '../types';
 import { voteApi } from '../services/api';
@@ -8,6 +8,7 @@ import { useSSE } from '../hooks/useSSE';
 import VoteForm from '../components/VoteForm';
 import VoteResult from '../components/VoteResult';
 import { motion } from 'framer-motion';
+import MessageModal from '../components/MessageModal';
 
 const { Title, Text } = Typography;
 
@@ -26,6 +27,16 @@ const VoteDetail: React.FC = () => {
   
   // 初始统计数据
   const [stats, setStats] = useState<VoteStats | null>(null);
+  
+  const [messageModal, setMessageModal] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
   
   // 加载投票详情
   const loadVoteDetail = async () => {
@@ -80,15 +91,41 @@ const VoteDetail: React.FC = () => {
     return new Date(dateString).toLocaleString('zh-CN');
   };
   
+  // 显示消息弹窗
+  const showMessageModal = (message: string, type: 'success' | 'error') => {
+    setMessageModal({
+      visible: true,
+      message,
+      type,
+    });
+  };
+  
+  // 关闭消息弹窗
+  const closeMessageModal = () => {
+    setMessageModal(prev => ({
+      ...prev,
+      visible: false,
+    }));
+  };
+  
   // 删除投票
   const handleDeleteVote = async () => {
     try {
-      await voteApi.deleteVote(voteId);
-      message.success('投票已删除');
-      navigate('/');
+      const response = await voteApi.deleteVote(voteId);
+      
+      // 使用API返回的消息
+      if (response.success) {
+        showMessageModal(response.message || '投票已删除', 'success');
+        // 延迟导航，让用户看到消息
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+      } else {
+        showMessageModal(response.message || '删除投票失败，请稍后重试', 'error');
+      }
     } catch (error) {
       console.error('删除投票失败', error);
-      message.error('删除投票失败，请稍后重试');
+      showMessageModal('删除投票失败，请稍后重试', 'error');
     }
   };
   
@@ -322,6 +359,13 @@ const VoteDetail: React.FC = () => {
           </Card>
         </motion.div>
       </div>
+      
+      <MessageModal
+        visible={messageModal.visible}
+        message={messageModal.message}
+        type={messageModal.type}
+        onClose={closeMessageModal}
+      />
     </motion.div>
   );
 };

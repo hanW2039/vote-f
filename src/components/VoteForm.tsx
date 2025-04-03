@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Form, Radio, Checkbox, Button, message, Typography, Card } from 'antd';
+import { Form, Radio, Checkbox, Button, Typography, Card } from 'antd';
 import { Vote, VoteSubmitRequest } from '../types';
 import { voteApi } from '../services/api';
 import axios from 'axios';
+import MessageModal from '../components/MessageModal';
 
 const { Title, Text } = Typography;
 
@@ -16,11 +17,37 @@ const VoteForm: React.FC<VoteFormProps> = ({ vote, onVoteSubmitted }) => {
   const [loading, setLoading] = useState(false);
   const isSingleVote = vote.vote_type === 'single';
   const isExpired = new Date(vote.end_time) < new Date();
+  const [messageModal, setMessageModal] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+  
+  // 显示消息弹窗
+  const showMessageModal = (message: string, type: 'success' | 'error') => {
+    setMessageModal({
+      visible: true,
+      message,
+      type,
+    });
+  };
+  
+  // 关闭消息弹窗
+  const closeMessageModal = () => {
+    setMessageModal(prev => ({
+      ...prev,
+      visible: false,
+    }));
+  };
   
   // 处理提交投票
   const handleSubmit = async (values: { options: number | number[] }) => {
     if (isExpired) {
-      message.error('该投票已结束，无法提交');
+      showMessageModal('该投票已结束，无法提交', 'error');
       return;
     }
     
@@ -30,16 +57,22 @@ const VoteForm: React.FC<VoteFormProps> = ({ vote, onVoteSubmitted }) => {
         option_ids: values.options
       };
       
-      await voteApi.submitVote(vote.id, submitData);
-      message.success('投票提交成功');
-      form.resetFields();
-      onVoteSubmitted();
+      const response = await voteApi.submitVote(vote.id, submitData);
+      
+      // 使用API返回的消息
+      if (response.success) {
+        showMessageModal(response.message || '投票提交成功', 'success');
+        form.resetFields();
+        onVoteSubmitted();
+      } else {
+        showMessageModal(response.message || '投票提交失败，请稍后重试', 'error');
+      }
     } catch (error: unknown) {
       console.error('投票提交失败', error);
       if (axios.isAxiosError(error) && error.response?.status === 400) {
-        message.error(error.response.data.message || '您已参与过此投票或选项无效');
+        showMessageModal(error.response.data.message || '您已参与过此投票或选项无效', 'error');
       } else {
-        message.error('投票提交失败，请稍后重试');
+        showMessageModal('投票提交失败，请稍后重试', 'error');
       }
     } finally {
       setLoading(false);
@@ -160,6 +193,13 @@ const VoteForm: React.FC<VoteFormProps> = ({ vote, onVoteSubmitted }) => {
           )}
         </Form.Item>
       </Form>
+      
+      <MessageModal
+        visible={messageModal.visible}
+        message={messageModal.message}
+        type={messageModal.type}
+        onClose={closeMessageModal}
+      />
     </div>
   );
 };
